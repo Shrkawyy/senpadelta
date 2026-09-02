@@ -4,7 +4,7 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'method_not_allowed' });
   }
 
-  // Keep the client limited to the requested Delta EU Dual server.
+  // Keep the client limited to the requested Delta EU FFA server.
   // Delta exposes this server as a WebSocket endpoint; the client prepends
   // wss:// when it receives a host without a scheme.
   const deltaServer = {
@@ -12,12 +12,12 @@ module.exports = async function handler(req, res) {
     num_players: 0,
     max_players: 200,
     num_spectators: 0,
-    count: 'Delta EU Dual',
-    host: 'eu.senpa.io:2001',
-    name: 'Delta Dual EU',
+    count: 'Delta EU FFA 2',
+    host: 'eu.mi.com:2001',
+    name: 'Delta FFA EU 2',
     region: 'EU',
-    mode: 'dual',
-    mode_name: 'Dual',
+    mode: 'ffa',
+    mode_name: 'FFA',
     version: 'Delta',
   };
 
