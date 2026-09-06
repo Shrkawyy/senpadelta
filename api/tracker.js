@@ -12,7 +12,7 @@ module.exports = async function handler(req, res) {
     max_players: 200,
     num_spectators: 0,
     count: 'Delta Dual EU',
-    host: 'ffa.delt.io',
+    host: 'eu.mi.com:2001',
     name: 'Delta Dual EU',
     region: 'EU',
     mode: 'dual',
