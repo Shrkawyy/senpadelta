@@ -5240,3 +5240,8 @@ button:disabled,button[disabled] {
 canvas#screen {
     background: transparent !important;
 }
+
+/* Captcha overlay for Cloudflare Turnstile (required by Delta / delt.io) */
+#captcha-overlay{align-items:center;background-color:rgba(0,0,0,.55);display:flex;height:100%;justify-content:center;left:0;position:fixed;top:0;visibility:hidden;width:100%;z-index:10000}
+#captcha-overlay.visible,#captcha-overlay[style*="visible"]{visibility:visible!important}
+#cf-turnstile,.cf-turnstile{background:#1a1a1a;border-radius:8px;padding:16px;box-shadow:0 8px 32px rgba(0,0,0,.5)}
