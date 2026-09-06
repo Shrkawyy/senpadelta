@@ -1,206 +1,143 @@
 // ==UserScript==
-// @name         Senpa Delta Dual Helper for Delt.io
+// @name         HiddenX on Delt.io (Senpa Delta)
 // @namespace    https://senpadelta.vercel.app
-// @version      1.1.0
-// @description  Dual / Multibox helpers for Delta servers on delt.io (fast multi spawn + dual nicks + auto server)
+// @version      2.0.0
+// @description  يشغّل واجهة HiddenX/Senpa جوه delt.io عشان الكابتشا والسيرفر يشتغلوا (Origin = delt.io)
 // @author       Senpa Delta
 // @match        https://delt.io/*
 // @match        https://*.delt.io/*
 // @grant        none
-// @run-at       document-idle
+// @run-at       document-start
 // ==/UserScript==
 
 (function () {
   'use strict';
 
-  const CONFIG = {
-    // السيرفر المطلوب (EU - Delta FFA 2)
-    preferredServerName: 'EU - Delta FFA 2',
-    preferredHost: 'eu.mi.com:2001',
-    // بديل لو FFA 2 مش موجود
-    fallbackServerName: 'EU - Multibox',
-    // تفعيل 1P+2P تلقائي
-    autoEnableDual: true,
-    // نيك الخلية التانية
-    cell2Suffix: '-2',
+  // رابط ملفات الإضافة على Vercel
+  const CDN = 'https://senpadelta.vercel.app';
+
+  // السيرفر
+  const SERVER = {
+    id: 0,
+    num_players: 0,
+    max_players: 200,
+    num_spectators: 0,
+    count: 'Delta Dual EU',
+    host: 'eu.mi.com:2001',
+    name: 'Delta Dual EU',
+    region: 'EU',
+    mode: 'dual',
+    mode_name: 'Dual',
+    version: 'Delta',
   };
 
-  const log = (...args) => console.log('%c[SenpaDelta]', 'color:#e67bbe;font-weight:bold', ...args);
+  const log = (...a) => console.log('%c[HiddenX→Delta]', 'color:#e67bbe;font-weight:bold', ...a);
 
-  // ---------- Helpers ----------
-  function waitFor(selector, timeout = 15000) {
-    return new Promise((resolve, reject) => {
-      const el = document.querySelector(selector);
-      if (el) return resolve(el);
-      const obs = new MutationObserver(() => {
-        const found = document.querySelector(selector);
-        if (found) {
-          obs.disconnect();
-          resolve(found);
-        }
+  // ---------- 1) اعتراض /api/tracker قبل ما الكلاينت يطلبه ----------
+  const originalFetch = window.fetch.bind(window);
+  window.fetch = function (input, init) {
+    const url = typeof input === 'string' ? input : (input && input.url) || '';
+    if (url.includes('/api/tracker') || url.endsWith('tracker')) {
+      log('tracker intercepted → Delta Dual EU');
+      return Promise.resolve(
+        new Response(JSON.stringify([SERVER]), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        })
+      );
+    }
+    return originalFetch(input, init);
+  };
+
+  // XMLHttpRequest كمان (لو الكلاينت بيستخدمه)
+  const origOpen = XMLHttpRequest.prototype.open;
+  const origSend = XMLHttpRequest.prototype.send;
+  XMLHttpRequest.prototype.open = function (method, url, ...rest) {
+    this.__senpaUrl = url;
+    return origOpen.call(this, method, url, ...rest);
+  };
+  XMLHttpRequest.prototype.send = function (...args) {
+    if (this.__senpaUrl && String(this.__senpaUrl).includes('tracker')) {
+      Object.defineProperty(this, 'status', { get: () => 200 });
+      Object.defineProperty(this, 'responseText', {
+        get: () => JSON.stringify([SERVER]),
       });
-      obs.observe(document.documentElement, { childList: true, subtree: true });
+      Object.defineProperty(this, 'response', {
+        get: () => JSON.stringify([SERVER]),
+      });
       setTimeout(() => {
-        obs.disconnect();
-        reject(new Error('timeout: ' + selector));
-      }, timeout);
-    });
-  }
+        this.onload && this.onload();
+        this.onreadystatechange && this.onreadystatechange();
+      }, 0);
+      return;
+    }
+    return origSend.apply(this, args);
+  };
 
-  function clickEl(el) {
-    if (!el) return false;
-    el.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-    el.dispatchEvent(new MouseEvent('mouseup', { bubbles: true }));
-    el.dispatchEvent(new MouseEvent('click', { bubbles: true }));
-    return true;
-  }
+  // ---------- 2) بعد ما الصفحة تبدأ: امسح واجهة Delta وركّب HiddenX ----------
+  function bootHiddenX() {
+    log('Booting HiddenX UI on delt.io domain...');
 
-  // ---------- Dual nickname (Cell 1 + Cell 2) ----------
-  function setupDualNicks() {
-    // Delta عادة بيستخدم input واحد للنيك
-    const nickInput =
-      document.querySelector('input[placeholder*="ick" i]') ||
-      document.querySelector('input[name="nick"]') ||
-      document.querySelector('#nick') ||
-      document.querySelector('.nick input') ||
-      Array.from(document.querySelectorAll('input[type="text"]')).find((i) =>
-        /nick|name|tag/i.test(i.placeholder || i.name || i.id || '')
-      );
+    // امسح محتوى الصفحة وركّب هيكل HiddenX
+    document.documentElement.innerHTML =
+      '<head>' +
+      '<meta charset="utf-8"/>' +
+      '<meta name="viewport" content="minimal-ui,width=device-width,minimum-scale=1,initial-scale=1,maximum-scale=1,user-scalable=no"/>' +
+      '<title>HiddenX · Delta Dual</title>' +
+      '<link href="https://fonts.googleapis.com/css?family=Rajdhani:400,500,600|Rubik|Ubuntu:400,500|Roboto:300,400,500,700" rel="stylesheet"/>' +
+      '<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.11.1/css/all.css" crossorigin="anonymous"/>' +
+      '<link href="' + CDN + '/static/css/main.b6296d95.css" rel="stylesheet"/>' +
+      '<style>' +
+      'html,body{margin:0;padding:0;height:100%;overflow:hidden;background:#111}' +
+      '#captcha-overlay{align-items:center;background:rgba(0,0,0,.55);display:flex;height:100%;justify-content:center;left:0;position:fixed;top:0;visibility:hidden;width:100%;z-index:10000}' +
+      '#captcha-overlay.visible{visibility:visible!important}' +
+      '#cf-turnstile,.cf-turnstile{background:#1a1a1a;border-radius:8px;padding:16px}' +
+      '#senpa-badge{position:fixed;bottom:10px;left:10px;z-index:999999;background:rgba(230,123,190,.95);color:#111;font:600 12px Rajdhani,sans-serif;padding:6px 10px;border-radius:6px;pointer-events:none}' +
+      '#primary-inputs{display:flex;gap:6px;overflow:visible}' +
+      '#primary-inputs input#name,#primary-inputs input[data-cell2]{flex:1 1 0;min-width:0;max-width:calc(50% - 3px)}' +
+      '</style></head><body>' +
+      '<canvas id="screen" class="screen"></canvas>' +
+      '<div id="ui-root"></div>' +
+      '<div id="captcha-overlay" aria-hidden="true"></div>' +
+      '<div id="senpa-badge">HiddenX on delt.io · Dual</div>' +
+      '</body>';
 
-    if (!nickInput || nickInput.dataset.senpaDual) return;
-    nickInput.dataset.senpaDual = '1';
+    // Dual nick helper
+    var nickScript = document.createElement('script');
+    nickScript.textContent =
+      '(function(){const P=(k)=>"cell2Nick:"+k;let last="";const f=()=>{const i=document.querySelector("#primary-inputs input#name");if(!i||i.dataset.cell2)return;i.dataset.cell2=1;const j=i.cloneNode(true);j.placeholder="Cell 2 nickname";j.style.marginLeft="6px";const norm=(s)=>typeof s==="string"&&s.length?s:"";const apply=()=>queueMicrotask(()=>{const a=norm(i.value);if(!a||a===last)return;last=a;const b=norm(localStorage.getItem(P(a))||a+"-2");j.value=b;window.__connNicks=[a,b];});j.oninput=()=>{const a=norm(i.value);const b=norm(j.value);if(!a||!b)return;localStorage.setItem(P(a),b);window.__connNicks=[a,b];};i.parentNode.appendChild(j);setInterval(apply,150);apply();};new MutationObserver(f).observe(document.body,{childList:true,subtree:true});})();';
+    document.body.appendChild(nickScript);
 
-    // خانة نيك الخلية التانية
-    const cell2 = nickInput.cloneNode(true);
-    cell2.id = 'senpa-cell2-nick';
-    cell2.placeholder = 'Cell 2 nickname';
-    cell2.style.marginLeft = '6px';
-    cell2.value = localStorage.getItem('senpa_cell2_nick') || (nickInput.value || 'Player') + CONFIG.cell2Suffix;
-
-    cell2.addEventListener('input', () => {
-      localStorage.setItem('senpa_cell2_nick', cell2.value);
-      window.__connNicks = [nickInput.value || '', cell2.value || ''];
-    });
-
-    nickInput.addEventListener('input', () => {
-      window.__connNicks = [nickInput.value || '', cell2.value || ''];
-    });
-
-    // حط الخانة جنب النيك الأصلي
-    if (nickInput.parentNode) {
-      nickInput.parentNode.style.display = 'flex';
-      nickInput.parentNode.style.gap = '6px';
-      nickInput.parentNode.appendChild(cell2);
+    function loadScript(src) {
+      return new Promise(function (resolve, reject) {
+        var s = document.createElement('script');
+        s.src = src;
+        s.defer = true;
+        s.onload = resolve;
+        s.onerror = reject;
+        document.body.appendChild(s);
+      });
     }
 
-    window.__connNicks = [nickInput.value || '', cell2.value || ''];
-    log('Dual nick inputs ready');
-  }
-
-  // ---------- Auto enable 1P+2P (Multibox) ----------
-  function enableDualToggle() {
-    if (!CONFIG.autoEnableDual) return;
-
-    // أزرار 1P / 1P+2P في واجهة Delta
-    const candidates = Array.from(document.querySelectorAll('button, div, span, label, a'));
-    const dualBtn = candidates.find((el) => {
-      const t = (el.textContent || '').trim();
-      return t === '1P+2P' || t === '2P' || /multi.?box/i.test(t);
-    });
-
-    if (dualBtn && !dualBtn.dataset.senpaClicked) {
-      dualBtn.dataset.senpaClicked = '1';
-      clickEl(dualBtn);
-      log('Enabled 1P+2P / Multibox');
-    }
-  }
-
-  // ---------- Select preferred server ----------
-  function selectPreferredServer() {
-    const items = Array.from(document.querySelectorAll('div, li, span, option, button'));
-    let target =
-      items.find((el) => (el.textContent || '').trim() === CONFIG.preferredServerName) ||
-      items.find((el) => (el.textContent || '').includes(CONFIG.preferredServerName)) ||
-      items.find((el) => (el.textContent || '').trim() === CONFIG.fallbackServerName);
-
-    if (target && !target.dataset.senpaSelected) {
-      target.dataset.senpaSelected = '1';
-      clickEl(target);
-      log('Selected server:', target.textContent.trim());
-      return true;
-    }
-    return false;
-  }
-
-  // ---------- Fill Connect box with host ----------
-  function fillConnectHost() {
-    const connectInput =
-      document.querySelector('input[value*="wss://"]') ||
-      document.querySelector('input[placeholder*="wss"]') ||
-      Array.from(document.querySelectorAll('input')).find((i) =>
-        /wss:\/\//.test(i.value || '')
-      );
-
-    if (connectInput) {
-      const desired = 'wss://' + CONFIG.preferredHost;
-      if (connectInput.value !== desired) {
-        connectInput.value = desired;
-        connectInput.dispatchEvent(new Event('input', { bubbles: true }));
-        connectInput.dispatchEvent(new Event('change', { bubbles: true }));
-        log('Set connect host to', desired);
+    (async function () {
+      try {
+        await loadScript(CDN + '/static/js/main.8569eac9.js');
+        await loadScript(CDN + '/build/vendors.js');
+        await loadScript(CDN + '/build/senpaobs.js');
+        log('HiddenX scripts loaded. Origin = delt.io → captcha/WS should work.');
+      } catch (e) {
+        console.error('[HiddenX→Delta] failed to load scripts', e);
+        document.body.insertAdjacentHTML(
+          'beforeend',
+          '<div style="position:fixed;inset:0;background:#111;color:#e67bbe;display:flex;align-items:center;justify-content:center;font:18px Rajdhani;z-index:999999;text-align:center;padding:20px">فشل تحميل ملفات HiddenX من Vercel.<br/>تأكد إن https://senpadelta.vercel.app شغال.</div>'
+        );
       }
-    }
-  }
-
-  // ---------- UI badge ----------
-  function injectBadge() {
-    if (document.getElementById('senpa-delta-badge')) return;
-    const badge = document.createElement('div');
-    badge.id = 'senpa-delta-badge';
-    badge.textContent = 'Senpa Dual ●';
-    Object.assign(badge.style, {
-      position: 'fixed',
-      bottom: '12px',
-      left: '12px',
-      zIndex: '999999',
-      background: 'rgba(230, 123, 190, 0.9)',
-      color: '#111',
-      font: '600 12px/1 Rajdhani, sans-serif',
-      padding: '6px 10px',
-      borderRadius: '6px',
-      pointerEvents: 'none',
-      boxShadow: '0 2px 8px rgba(0,0,0,0.4)',
-    });
-    document.body.appendChild(badge);
-  }
-
-  // ---------- Main loop ----------
-  function tick() {
-    try {
-      setupDualNicks();
-      enableDualToggle();
-      selectPreferredServer();
-      fillConnectHost();
-      injectBadge();
-    } catch (e) {
-      console.warn('[SenpaDelta] tick error', e);
-    }
-  }
-
-  // ابدأ بعد تحميل الصفحة
-  function start() {
-    log('Loaded on', location.href);
-    tick();
-    setInterval(tick, 1500);
-
-    // راقب تغييرات الواجهة
-    const obs = new MutationObserver(() => tick());
-    obs.observe(document.body, { childList: true, subtree: true });
+    })();
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', start);
+    document.addEventListener('DOMContentLoaded', bootHiddenX, { once: true });
   } else {
-    start();
+    bootHiddenX();
   }
 })();
