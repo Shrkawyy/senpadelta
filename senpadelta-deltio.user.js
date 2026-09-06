@@ -1,4 +1,4 @@
-
+// ==UserScript==
 // @name         HiddenX on Delt.io (Senpa Delta)
 // @namespace    https://senpadelta.vercel.app
 // @version      2.2.0
