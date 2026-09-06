@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         HiddenX on Delt.io (Senpa Delta)
 // @namespace    https://senpadelta.vercel.app
-// @version      2.2.0
+// @version      2.3.0
 // @description  HiddenX UI on delt.io domain (fixes asset paths + wasm)
 // @author       Senpa Delta
 // @match        *://delt.io/*
@@ -175,9 +175,9 @@
         await loadScript(CDN + '/static/js/main.8569eac9.js');
         log('Loading vendors...');
         await loadScript(CDN + '/build/vendors.js');
-        log('Loading senpaobs...');
-        await loadScript(CDN + '/build/senpaobs.js');
-        log('Ready. Press Play.');
+        // senpaobs معطّل مؤقتاً (كان بيحاول يتصل من غير captcha)
+        // await loadScript(CDN + '/build/senpaobs.js');
+        log('Ready. Press Play — complete captcha if shown.');
       } catch (e) {
         console.error('[HiddenX→Delta]', e);
         badge.textContent = 'Load error — check Console';
