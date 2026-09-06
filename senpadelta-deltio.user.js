@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name         HiddenX on Delt.io
 // @namespace    https://senpadelta.vercel.app
-// @version      3.2.0
-// @description  HiddenX full replace on delt.io via document.write
+// @version      3.3.0
+// @description  HiddenX — يوقف Service Worker بتاع Delta ثم يستبدل الصفحة
 // @author       Senpa Delta
 // @match        *://delt.io/*
 // @match        *://*.delt.io/*
@@ -12,13 +12,33 @@
 
 (function () {
   'use strict';
-  if (window.__hx32) return;
-  window.__hx32 = true;
+  if (window.__hx33) return;
+  window.__hx33 = true;
 
   const CDN = 'https://senpadelta.vercel.app';
 
-  // امنع أي تنقل بعيد عن delt.io
-  const html = `<!DOCTYPE html>
+  async function killDeltaPersistence() {
+    try {
+      if (navigator.serviceWorker) {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        for (const r of regs) {
+          await r.unregister();
+          console.log('[HiddenX] SW unregistered', r.scope);
+        }
+      }
+      if (window.caches) {
+        const keys = await caches.keys();
+        for (const k of keys) {
+          await caches.delete(k);
+          console.log('[HiddenX] cache deleted', k);
+        }
+      }
+    } catch (e) {
+      console.warn('[HiddenX] SW/cache clean error', e);
+    }
+  }
+
+  const page = `<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8"/>
@@ -46,69 +66,59 @@ canvas.screen{position:fixed;inset:0;width:100%;height:100%}
 <div id="hx-badge">HiddenX · FFA EU 2</div>
 <script>
 (function(){
-  var CDN = "${CDN}";
-  var SERVER = [{id:0,num_players:0,max_players:200,num_spectators:0,count:"Delta Dual EU",host:"eu.mi.com:2001",name:"Delta Dual EU",region:"EU",mode:"dual",mode_name:"Dual",version:"Delta"}];
-  var rf = window.fetch.bind(window);
-  window.fetch = function(input, init){
-    try {
-      var url = typeof input === "string" ? input : (input && input.url) || "";
-      if (/tracker/i.test(url)) {
-        return Promise.resolve(new Response(JSON.stringify(SERVER), {status:200, headers:{"Content-Type":"application/json"}}));
+  var CDN="${CDN}";
+  var SERVER=[{id:0,num_players:0,max_players:200,num_spectators:0,count:"Delta Dual EU",host:"eu.mi.com:2001",name:"Delta Dual EU",region:"EU",mode:"dual",mode_name:"Dual",version:"Delta"}];
+  var rf=window.fetch.bind(window);
+  window.fetch=function(input,init){
+    try{
+      var url=typeof input==="string"?input:(input&&input.url)||"";
+      if(/tracker/i.test(url))
+        return Promise.resolve(new Response(JSON.stringify(SERVER),{status:200,headers:{"Content-Type":"application/json"}}));
+      var u=new URL(url,location.href);
+      var p=u.pathname.replace(/^\\/v7/,"");
+      if(/\\.wasm$/i.test(p)||/^\\/(img|build|static|resources)/i.test(p)||/bundle\\.wasm|shield|logo-med|food-bg|rainbow|no-skin/i.test(p)){
+        if(/\\.wasm$/i.test(p)&&!/bundle\\.wasm/i.test(p)) p="/bundle.wasm";
+        return rf(CDN+p,init);
       }
-      var u = new URL(url, location.href);
-      var p = u.pathname.replace(/^\\/v7/, "");
-      if (/\\.wasm$/i.test(p) || /^\\/(img|build|static|resources)/i.test(p) || /bundle\\.wasm|shield|logo-med|food-bg|rainbow|no-skin/i.test(p)) {
-        if (/\\.wasm$/i.test(p) && !/bundle\\.wasm/i.test(p)) p = "/bundle.wasm";
-        return rf(CDN + p, init);
-      }
-    } catch(e) {}
-    return rf(input, init);
+    }catch(e){}
+    return rf(input,init);
   };
-  // dual nick
   (function(){
-    var P=function(k){return "cell2Nick:"+k}; var last="";
+    var P=function(k){return "cell2Nick:"+k};var last="";
     var f=function(){
       var i=document.querySelector("#primary-inputs input#name");
-      if(!i||i.dataset.cell2) return;
+      if(!i||i.dataset.cell2)return;
       i.dataset.cell2=1;
-      var j=i.cloneNode(true);
-      j.placeholder="Cell 2 nickname"; j.style.marginLeft="6px";
+      var j=i.cloneNode(true);j.placeholder="Cell 2 nickname";j.style.marginLeft="6px";
       var n=function(s){return typeof s==="string"&&s.length?s:""};
       var apply=function(){queueMicrotask(function(){
-        var a=n(i.value); if(!a||a===last) return; last=a;
-        var b=n(localStorage.getItem(P(a))||a+"-2");
-        j.value=b; window.__connNicks=[a,b];
+        var a=n(i.value);if(!a||a===last)return;last=a;
+        var b=n(localStorage.getItem(P(a))||a+"-2");j.value=b;window.__connNicks=[a,b];
       })};
-      j.oninput=function(){var a=n(i.value),b=n(j.value); if(!a||!b)return; localStorage.setItem(P(a),b); window.__connNicks=[a,b]};
-      if(i.parentNode) i.parentNode.appendChild(j);
-      setInterval(apply,150); apply();
+      j.oninput=function(){var a=n(i.value),b=n(j.value);if(!a||!b)return;localStorage.setItem(P(a),b);window.__connNicks=[a,b]};
+      if(i.parentNode)i.parentNode.appendChild(j);setInterval(apply,150);apply();
     };
     new MutationObserver(f).observe(document.body,{childList:true,subtree:true});
   })();
-  console.log("%c[HiddenX] document rewritten — loading app", "color:#e67bbe;font-weight:bold");
+  console.log("%c[HiddenX] clean page ready","color:#e67bbe;font-weight:bold");
 })();
 </script>
-<script defer src="${CDN}/static/js/main.8569eac9.js"></script>
-<script defer src="${CDN}/build/vendors.js"></script>
+<script src="${CDN}/static/js/main.8569eac9.js"></script>
+<script src="${CDN}/build/vendors.js"></script>
 </body>
 </html>`;
 
-  function rewrite() {
+  async function go() {
+    await killDeltaPersistence();
     try {
       document.open();
-      document.write(html);
+      document.write(page);
       document.close();
-      console.log('%c[HiddenX] rewrite done', 'color:#e67bbe;font-weight:bold');
+      console.log('%c[HiddenX] rewrite 3.3 done', 'color:#e67bbe;font-weight:bold');
     } catch (e) {
-      console.error('[HiddenX] rewrite failed', e);
+      console.error('[HiddenX] write failed', e);
     }
   }
 
-  // نفّذ في أقرب فرصة
-  if (document.readyState === 'loading') {
-    // document-start: استنى لحظة قصيرة
-    setTimeout(rewrite, 0);
-  } else {
-    rewrite();
-  }
+  go();
 })();
