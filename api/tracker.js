@@ -4,19 +4,19 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'method_not_allowed' });
   }
 
-  // Delta EU Dual server (fast multi-bot respawn like Dual mode).
-  // Client prepends wss:// when host has no scheme.
+  // Delt.io EU - Delta FFA 2.
+  // The client prepends wss:// when the host has no scheme.
   const deltaServer = {
     id: 0,
     num_players: 0,
     max_players: 200,
     num_spectators: 0,
-    count: 'Delta Dual EU',
+    count: 'EU - Delta FFA 2',
     host: 'eu.mi.com:2001',
-    name: 'Delta Dual EU',
+    name: 'EU - Delta FFA 2',
     region: 'EU',
-    mode: 'dual',
-    mode_name: 'Dual',
+    mode: 'ffa',
+    mode_name: 'FFA',
     version: 'Delta',
   };
 
