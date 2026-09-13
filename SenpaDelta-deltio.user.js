@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SenpaDelta on delt.io
 // @namespace    shrkawy.senpadelta
-// @version      1.0.1
+// @version      1.0.2
 // @description  Runs the uploaded SenpaDelta/ONYX client directly on delt.io so the page hostname remains delt.io.
 // @author       Local conversion
 // @match        https://delt.io/*
@@ -139,8 +139,9 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111}
     try {
       (0, eval)(code + '\n//# sourceURL=senpadelta-tm-' + label + '.js');
     } catch (e) {
-      e.message = label + ': ' + e.message;
-      throw e;
+      console.error('[SenpaDelta-TM] script failed:', label, e);
+      const msg = e && e.message ? e.message : String(e);
+      throw new Error(label + ': ' + msg, { cause: e });
     }
   }
 
@@ -180,8 +181,43 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111}
     document.head.appendChild(st);
   }
 
+  async function waitForShell() {
+    const started = Date.now();
+    while (Date.now() - started < 5000) {
+      if (document.head && document.body && document.getElementById('ui-root') && document.getElementById('screen')) {
+        // Give the HTML parser one extra task before React mounts.
+        await new Promise(resolve => setTimeout(resolve, 25));
+        if (document.getElementById('ui-root') && document.getElementById('screen')) return;
+      }
+      await new Promise(resolve => setTimeout(resolve, 10));
+    }
+
+    // Hard fallback: React 17 error #200 is thrown when the target container is missing/not an element.
+    if (!document.documentElement) document.appendChild(document.createElement('html'));
+    if (!document.head) document.documentElement.insertBefore(document.createElement('head'), document.documentElement.firstChild);
+    if (!document.body) document.documentElement.appendChild(document.createElement('body'));
+    if (!document.getElementById('screen')) {
+      const canvas = document.createElement('canvas');
+      canvas.id = 'screen';
+      canvas.className = 'screen';
+      document.body.appendChild(canvas);
+    }
+    if (!document.getElementById('ui-root')) {
+      const root = document.createElement('div');
+      root.id = 'ui-root';
+      document.body.appendChild(root);
+    }
+  }
+
   async function boot() {
     try {
+      await waitForShell();
+      const reactRoot = document.getElementById('ui-root');
+      if (!reactRoot || reactRoot.nodeType !== 1) {
+        throw new Error('ui-root is missing before React boot');
+      }
+      console.log('[SenpaDelta-TM] shell ready', {readyState: document.readyState, root: reactRoot, body: !!document.body});
+
       // Decode binary assets first and turn them into same-document blob URLs.
       const binaryKeys = Object.keys(MIME);
       const urls = {};
@@ -206,6 +242,11 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111}
       let restore = await unpackText('restore');
       let auth = await unpackText('auth');
       let main = patchCode(await unpackText('main'), urls, trackerUrl);
+      // React 17 render target: force a real element even if document.write parsing races at document-start.
+      const renderTargetExpr = 'document[_0x40c5a9(0x9f9)](_0x40c5a9(0x28d))';
+      if (main.includes(renderTargetExpr)) {
+        main = main.split(renderTargetExpr).join('(document.getElementById("ui-root") || (function(){var r=document.createElement("div");r.id="ui-root";document.body.appendChild(r);return r;})())');
+      }
       let vendors = patchCode(await unpackText('vendors'), urls, trackerUrl);
       let engine = patchCode(await unpackText('engine'), urls, trackerUrl);
 
