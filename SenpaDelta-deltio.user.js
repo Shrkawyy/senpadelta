@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         SenpaDelta on delt.io
 // @namespace    shrkawy.senpadelta
-// @version      1.0.0
+// @version      1.0.1
 // @description  Runs the uploaded SenpaDelta/ONYX client directly on delt.io so the page hostname remains delt.io.
 // @author       Local conversion
 // @match        https://delt.io/*
@@ -137,7 +137,7 @@ html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#111}
   function runGlobal(code, label) {
     // Tampermonkey @grant none executes with page globals; sourceURL keeps console errors readable.
     try {
-      (0, eval)(code + '\\n//# sourceURL=senpadelta-tm-' + label + '.js');
+      (0, eval)(code + '\n//# sourceURL=senpadelta-tm-' + label + '.js');
     } catch (e) {
       e.message = label + ': ' + e.message;
       throw e;
