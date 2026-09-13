@@ -4,20 +4,20 @@ module.exports = async function handler(req, res) {
     return res.status(405).json({ error: 'method_not_allowed' });
   }
 
-  // Delt.io EU - Delta FFA 2.
+  // Restore the endpoint selected by the supplied ONYX reference.
   // The client prepends wss:// when the host has no scheme.
   const deltaServer = {
     id: 0,
     num_players: 0,
     max_players: 200,
     num_spectators: 0,
-    count: 'EU - Delta FFA 2',
-    host: 'eu.mi.com:2001',
-    name: 'EU - Delta FFA 2',
+    count: 'EU - ONYX 404',
+    host: 'eu.senpa.io:2001',
+    name: 'EU - ONYX 404',
     region: 'EU',
     mode: 'ffa',
     mode_name: 'FFA',
-    version: 'Delta',
+    version: 'ONYX',
   };
 
   res.setHeader('Cache-Control', 'no-store');
