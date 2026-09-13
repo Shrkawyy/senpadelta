@@ -1,7 +1,7 @@
-# Senpa Delta — ONYX connection restoration R1
+# Senpa Delta — ONYX connection restoration R3
 
 ## Installation
-Upload the contents of this folder to the existing repository/project root, replacing existing files. Keep api, build, static and img folders. Redeploy the existing Vercel project and reload with Ctrl+F5. Select EU - ONYX 404.
+Upload the contents of this folder to the existing repository/project root, replacing existing files. Keep api, build, static and img folders. Redeploy the existing Vercel project and reload with Ctrl+F5. Select EU - ONYX.
 
 ## Verified source findings
 - The uploaded tracker pointed to eu.mi.com:2001; the supplied ONYX menu points to eu.senpa.io:2001. The tracker now uses that ONYX endpoint. This does not establish that the endpoint is Delt.io ffaeu2.
@@ -20,3 +20,17 @@ The existing engine, renderer and assets are retained. The reference engine load
 Local assertions passed for ONYX spawn bytes, both connection IDs, dual player-slot bytes, preventing duplicate spawn for a live slot, delayed handshake, duplicate handshake, invalid input, saved endpoint migration and tracker GET/405 behavior. Modified JavaScript passed syntax checks.
 
 Live DNS resolution failed in this environment for both eu.mi.com and eu.senpa.io (temporary name-resolution failure). This does not prove either domain is globally unavailable. Browser smoke testing could not run because Chromium is not installed. Actual connection, authentication, spawn, multibox gameplay and physics remain unverified. Client metadata does not change server physics. This archive is a source-grounded repair candidate, not a claim of verified live gameplay.
+
+## R2 captcha diagnosis
+The user screenshot confirms the WebSocket opened to eu.senpa.io:2001. Turnstile then returns 110200 (domain not authorized). Cloudflare requires the widget owner to authorize the deployment hostname in Turnstile > Settings > Hostname Management. This archive cannot perform that account-side change.
+
+R2 keeps a readable error visible for 110200 instead of silently hiding the captcha. It never submits an empty or fabricated token. Removed a duplicate captcha-overlay element: React already creates it. Server display name is now EU - ONYX.
+
+Official reference: https://developers.cloudflare.com/turnstile/troubleshooting/client-side-errors/error-codes/
+
+## R3: deployed ONYX comparison
+Fetched https://ffadual.vercel.app/ and its engine/auth scripts. Both scripts match the uploaded reference byte-for-byte. ONYX sends the token returned by ONYXAuth after handshake; its auth helper auto-seeds an embedded account credential. R3 does NOT reuse that credential. It loads a sanitized helper for the user's own Senpa token, with a SENPA account button. Token saved means stored locally, not verified by the server. Reload after saving your own token. Do not share tokens in chat.
+
+Turnstile response now uses kind 2 as in ONYX. Captcha requests from both sockets reach the UI with their connection ID; responses go to that connection. These fix protocol differences but cannot authorize a hostname or guarantee gameplay. Error 110200 remains an account-side hostname rejection if the server requires that challenge.
+
+Tests: spawn regressions, authentication packet format and no-token behavior, captcha packet kind and target connection, JavaScript syntax. No live gameplay verified.

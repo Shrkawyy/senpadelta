@@ -7480,13 +7480,14 @@ function _0x4b76(_0x396d78, _0x38d7dd) {
           }
           const _0xb7b3a5 = new _0x131ab0();
           class _0x2d0c52 {
-            [_0x2c9288(0x4b6)](_0x21000b) {
+            [_0x2c9288(0x4b6)](_0x21000b, connection = 1) {
               const _0x448aab = _0x2c9288,
                 _0xfb52db = _0x21000b[_0x448aab(0x28b)](),
                 _0x2d88ce = _0x21000b["readUInt8"]();
               _0x1c92ae["dispatch"](_0x1ea366[_0x448aab(0x4f2)], {
                 loggedUsersOnly: _0xfb52db,
                 version: _0x2d88ce,
+                connection: connection,
               });
             }
           }
@@ -7543,6 +7544,7 @@ function _0x4b76(_0x396d78, _0x38d7dd) {
                     _0x13dbcf,
                   );
                 if (
+                  _0x35ec81 == 0x7 ||
                   _0x35ec81 == 0x0 ||
                   _0x35ec81 == 0x1 ||
                   _0x35ec81 == 0xa ||
@@ -7951,10 +7953,11 @@ function _0x4b76(_0x396d78, _0x38d7dd) {
                   ? _0x6c71dc[_0x16f3bf(0x501)] && this[_0x16f3bf(0x18e)]
                   : _0x6c71dc["connected2"] && this[_0x16f3bf(0x1f8)];
               if (!_0x58c5c1) return;
-              const _0x261232 = _0x1e8300["authToken"] + "",
+              const _0x261232 = ((window.ONYXAuth && window.ONYXAuth.getSenpaToken()) || _0x1e8300["authToken"] || ""),
                 _0x5e2bfe = new _0x15bfa3(
                   0x1 + 0x2 * (_0x261232["length"] + 0x1),
                 );
+              if (!_0x261232) return;
               (_0x5e2bfe[_0x16f3bf(0x39f)](0xd),
                 _0x5e2bfe[_0x16f3bf(0x182)](_0x261232),
                 _0x6c71dc[_0x16f3bf(0x2d4)](
@@ -8001,13 +8004,13 @@ function _0x4b76(_0x396d78, _0x38d7dd) {
                 this.spawn(connection, slot);
               }
             }
-            [_0x2c9288(0x444)](_0x21bd7a, _0x4a9a3b) {
-              const _0x10ab23 = _0x2c9288,
-                _0x13c4fc = new _0x15bfa3(0x2 ** 0xb);
-              (_0x13c4fc[_0x10ab23(0x39f)](0xe),
-                _0x13c4fc[_0x10ab23(0x39f)](_0x21bd7a),
-                _0x13c4fc["writeLongString8"](_0x4a9a3b),
-                _0x6c71dc[_0x10ab23(0x2d4)](_0x13c4fc[_0x10ab23(0x260)]));
+            ["captcha"](kind, token, connection = 1) {
+              if (!token || (connection !== 1 && connection !== 2)) return;
+              const packet = new _0x15bfa3(4 + token.length);
+              packet.writeUInt8(14);
+              packet.writeUInt8(kind);
+              packet.writeLongString8(token);
+              _0x6c71dc.send(packet.buffer, connection);
             }
             ["nick"](_0x350d7a) {
               const _0x92b4f = _0x2c9288,

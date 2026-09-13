@@ -39,8 +39,9 @@
           buttonPosition: "bottom-left",
         }));
     </script>
-    <script src="./restore-server.js?v=onyx-r1"></script>
-    <script defer="defer" src="./static/js/main.8569eac9.js?v=onyx-r1"></script>
+    <script src="./restore-server.js?v=onyx-r3"></script>
+    <script defer src="./onyx-senpa-auth.js?v=onyx-r3"></script>
+    <script defer="defer" src="./static/js/main.8569eac9.js?v=onyx-r3"></script>
     <link href="./static/css/main.b6296d95.css" rel="stylesheet" />
     <style>
       /* Captcha overlay – was missing from main.b6296d95.css */
@@ -83,8 +84,7 @@
       </filter></svg
     ><canvas id="screen" class="screen"></canvas>
     <div id="ui-root"></div>
-    <!-- Container for Turnstile widget (client injects into #captcha-overlay) -->
-    <div id="captcha-overlay" aria-hidden="true"></div>
+    <!-- The React app owns the single captcha-overlay container. -->
     <script type="text/javascript">
       const gameAds = function (e, a, n, t, r, s, o) {
           ((e[r] =
@@ -202,7 +202,7 @@
         max-width: calc(50% - 3px);
       }
     </style>
-    <script src="./build/senpaobs.js?v=onyx-r1" defer="defer"></script>
+    <script src="./build/senpaobs.js?v=onyx-r3" defer="defer"></script>
     <script
       defer
       src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015"

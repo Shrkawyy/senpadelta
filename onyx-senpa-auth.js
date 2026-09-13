@@ -11,7 +11,7 @@
   var STORAGE_KEY = 'senpa_auth_token';
   var PROFILE_KEY = 'senpa_last_profile';
   // Token i nxjerrë nga senpa.io — pastuar automatikisht si Agar24
-  var SEEDED_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjI0OTgxMywicm9sZSI6MSwiaWF0IjoxNzg0MzExNjU1fQ.Cd4GE-sHcuncpfCzlTp79RGrJC5ks9TC4DJHFJ8fBCw';
+
 
   var HELPER = `(async () => {
   const readToken = () => {
@@ -57,7 +57,7 @@
     await navigator.clipboard.writeText(token);
     console.log("[ONYX] Senpa auth token copied to clipboard.");
   } catch {
-    console.log("[ONYX] Token:", token);
+    console.warn("[ONYX] Clipboard unavailable; no token was printed.");
   }
   return token;
 })();`;
@@ -202,8 +202,8 @@
       var name = (profile && (profile.username || profile.nickname || profile.name)) || '';
       fab.classList.toggle('ok', !!token);
       fab.querySelector('.label').textContent = token
-        ? ('SENPA: ' + (name || 'logged in'))
-        : 'SENPA AUTH — paste token';
+        ? ('SENPA: ' + (name || 'token saved'))
+        : 'حساب SENPA';
       if (token && !input.value) input.value = token;
     }
 
@@ -227,7 +227,7 @@
       try {
         var profile = login(input.value);
         var name = profile.username || profile.nickname || profile.name || 'ok';
-        setStatus('Login successful: ' + name, 'ok');
+        setStatus('Token saved for server verification: ' + name, 'ok');
         refreshFab();
         setTimeout(close, 500);
       } catch (err) {
@@ -253,15 +253,8 @@
 
     window.addEventListener('onyx:senpa-auth-changed', refreshFab);
 
-    // Seed gjithmonë me të njëjtin key (nuk duhet paste tjetër)
-    try {
-      login(SEEDED_TOKEN);
-      input.value = SEEDED_TOKEN;
-      setStatus('Key fiks aktiv.', 'ok');
-    } catch (_) {}
-
     refreshFab();
-    // Mos hap panelin — key-i është tashmë brenda
+
 
     window.ONYXAuth.openSenpaPanel = open;
     window.ONYXAuth.closeSenpaPanel = close;

@@ -41258,6 +41258,24 @@ function _0x2860() {
                                             _0xfeb2d0,
                                           ) {
                                             var _0x19eb36 = _0xd79b16;
+                                            if (String(_0xfeb2d0) === "110200") {
+                                              console.error("Turnstile: domain not authorized (110200)", location.hostname);
+                                              _0x455d43.style.visibility = "visible";
+                                              _0x455d43.textContent = "";
+                                              var message = document.createElement("div");
+                                              message.dir = "rtl";
+                                              message.style.cssText = "max-width:520px;margin:20px;padding:24px;background:#191919;color:white;border-radius:12px;font:18px/1.8 sans-serif;text-align:center";
+                                              var explanation = document.createElement("p");
+                                              explanation.textContent = "تعذّر التحقق: دومين الإضافة " + location.hostname + " غير مسموح له باستخدام الكابتشا (110200). لازم مالك مفتاح Turnstile يضيف الدومين في إعدادات Cloudflare، وبعدها تعيد تحميل الصفحة.";
+                                              var close = document.createElement("button");
+                                              close.textContent = "رجوع";
+                                              close.onclick = function () { _0x455d43.style.visibility = "hidden"; };
+                                              message.appendChild(explanation);
+                                              message.appendChild(close);
+                                              _0x455d43.appendChild(message);
+                                              _0x5806ab("");
+                                              return true;
+                                            }
                                             (console[_0x19eb36(0x3fa)](
                                               _0x19eb36(0x19e),
                                               _0xfeb2d0,
@@ -41273,8 +41291,9 @@ function _0x2860() {
                                   case 0xa:
                                     (_0x29579c = _0x2b9523[_0x22c146(0x20d)]) &&
                                       window[_0x22c146(0xb89)]["captcha"](
-                                        0x1,
+                                        0x2,
                                         _0x29579c,
+                                        (_0x51604d && _0x51604d.connection) || 1,
                                       );
                                   case 0xc:
                                   case _0x22c146(0x30c):
